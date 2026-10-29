@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="color-scheme" content="light">
+  <title>كشف حساب</title>
+  <style>
+    :root {
+      --ink: #141414;
+      --body: #2b2b2b;
+      --muted: #6f6f6f;
+      --faint: #9a9a9a;
+      --line: #e2e2e2;
+      --soft: #f7f7f7;
+      --danger: #9b2c2c;
+      --font: "Segoe UI", Tahoma, Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: var(--font);
+    }
+
+    [hidden] { display: none !important; }
+
+    body {
+      width: 384px;
+      margin: 0;
+      background: #ffffff;
+      color: var(--body);
+      font-size: 12px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ---------- header ---------- */
+    .top {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 10px;
+      padding: 14px 16px 13px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .brand { height: 26px; width: auto; display: block; }
+
+    .top-copy { text-align: right; }
+
+    .top-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--ink);
+      letter-spacing: .2px;
+    }
+
+    .top-sub {
+      font-size: 9.5px;
+      color: var(--faint);
+      letter-spacing: .3px;
+    }
+
+    /* ---------- body ---------- */
+    .body { padding: 14px 16px 16px; }
+
+    .status {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 8px 10px;
+      margin-bottom: 13px;
+      border: 1px solid #e9e9e9;
+      background: var(--soft);
+      color: #555;
+      font-size: 10.5px;
+      line-height: 1.6;
+      border-radius: 3px;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      margin-top: 5px;
+      border-radius: 50%;
+      background: #8a8a8a;
+      flex: none;
+    }
+
+    .status.error {
+      background: #fdf5f5;
+      border-color: #efd6d6;
+      color: var(--danger);
+    }
+    .status.error .status-dot { background: var(--danger); }
+
+    .status.success {
+      background: #f5faf6;
+      border-color: #d9eadd;
+      color: #276b43;
+    }
+    .status.success .status-dot { background: #276b43; }
+
+    .form { display: grid; gap: 12px; }
+
+    .field { display: grid; gap: 5px; position: relative; }
+
+    label {
+      font-size: 10.5px;
+      font-weight: 600;
+      color: #555;
+    }
+
+    input[type="text"],
+    input[type="date"],
+    select {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #d9d9d9;
+      border-radius: 3px;
+      background: #ffffff;
+      font-size: 11.5px;
+      color: var(--ink);
+      outline: none;
+      transition: border-color .12s, box-shadow .12s;
+    }
+
+    input[type="date"] {
+      font-size: 11px;
+      font-variant-numeric: tabular-nums;
+      padding: 7px 8px;
+    }
+
+    input::placeholder { color: #a6a6a6; }
+
+    input[type="text"]:focus,
+    input[type="date"]:focus,
+    select:focus {
+      border-color: #8a8a8a;
+      box-shadow: 0 0 0 2px rgba(0, 0, 0, .05);
+    }
+
+    select {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'%3E%3Cpath d='M1 1.2 5 5.6 9 1.2' fill='none' stroke='%23777' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: left 10px center;
+      padding-inline-start: 28px;
+      cursor: pointer;
+    }
+
+    /* ---------- combobox ---------- */
+    .combo { position: relative; }
+
+    .combo input { padding-inline-end: 30px; }
+
+    .combo-clear {
+      position: absolute;
+      inset-inline-end: 7px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 18px;
+      height: 18px;
+      padding: 0;
+      border: 0;
+      border-radius: 50%;
+      background: #f0f0f0;
+      color: #666;
+      font-size: 12px;
+      line-height: 1;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+    }
+
+    .combo-clear:hover { background: #e6e6e6; color: var(--ink); }
+
+    .combo-list {
+      position: absolute;
+      inset-inline: 0;
+      top: calc(100% + 4px);
+      z-index: 30;
+      max-height: 208px;
+      overflow-y: auto;
+      padding: 3px;
+      background: #ffffff;
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      box-shadow: 0 10px 26px rgba(0, 0, 0, .12);
+    }
+
+    .combo-item {
+      display: block;
+      width: 100%;
+      padding: 7px 8px;
+      border: 0;
+      border-radius: 2px;
+      background: transparent;
+      text-align: right;
+      font-family: inherit;
+      cursor: pointer;
+    }
+
+    .combo-item:hover,
+    .combo-item.is-active { background: #f4f4f4; }
+
+    .ci-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .ci-name {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--ink);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .ci-code {
+      flex: none;
+      font-size: 9px;
+      color: #8a8a8a;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .ci-sub {
+      margin-top: 1px;
+      font-size: 9px;
+      color: #a0a0a0;
+      display: flex;
+      gap: 5px;
+    }
+
+    .combo-empty {
+      padding: 14px 8px;
+      text-align: center;
+      font-size: 10.5px;
+      color: var(--faint);
+    }
+
+    /* ---------- meta / hint ---------- */
+    .meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 1px;
+    }
+
+    .child-toggle {
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+      margin-top: 2px;
+      font-size: 10px;
+      font-weight: 500;
+      color: #555;
+      cursor: pointer;
+    }
+
+    .child-toggle input[type="checkbox"] {
+      width: 13px;
+      height: 13px;
+      margin: 1px 0 0;
+      accent-color: #141414;
+      flex: none;
+      cursor: pointer;
+    }
+
+    .chip {
+      padding: 1px 7px;
+      border: 1px solid #e8e8e8;
+      border-radius: 2px;
+      background: #fafafa;
+      font-size: 9px;
+      color: #6a6a6a;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .detect-note {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 2px;
+      font-size: 9.5px;
+      color: #7a7a7a;
+    }
+
+    .detect-note::before {
+      content: "✓";
+      color: #2f7d4f;
+      font-size: 10px;
+      line-height: 1;
+    }
+
+    /* ---------- dates / buttons ---------- */
+    .date-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .actions {
+      display: grid;
+      gap: 7px;
+      margin-top: 2px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid transparent;
+      border-radius: 3px;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color .12s, border-color .12s;
+    }
+
+    .btn:focus-visible { outline: 2px solid #b5b5b5; outline-offset: 2px; }
+
+    .btn svg { width: 14px; height: 14px; flex: none; }
+
+    .btn-primary {
+      background: #141414;
+      border-color: #141414;
+      color: #ffffff;
+    }
+
+    .btn-primary:hover:not(:disabled) { background: #2c2c2c; border-color: #2c2c2c; }
+
+    .btn-ghost {
+      background: #ffffff;
+      border-color: #d9d9d9;
+      color: var(--ink);
+      font-weight: 500;
+    }
+
+    .btn-ghost:hover:not(:disabled) { background: #f7f7f7; }
+
+    .btn:disabled { opacity: .55; cursor: not-allowed; }
+
+    .spinner {
+      width: 12px;
+      height: 12px;
+      border: 2px solid rgba(255, 255, 255, .35);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      flex: none;
+    }
+
+    .fineprint {
+      margin: 2px 0 0;
+      font-size: 9px;
+      line-height: 1.7;
+      color: #a0a0a0;
+      text-align: center;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-thumb { background: #ddd; border-radius: 4px; border: 2px solid #fff; }
+  </style>
+</head>
+<body>
+
+  <header class="top">
+    <img class="brand" src="assets/logo.png" alt="Rossel Global">
+    <div class="top-copy">
+      <div class="top-title">كشف حساب</div>
+      <div class="top-sub">Zoho Books</div>
+    </div>
+  </header>
+
+  <div class="body">
+    <div id="statusBox" class="status" role="status" aria-live="polite">
+      <span class="status-dot"></span>
+      <span id="statusText">جارٍ التحقق من تبويب Zoho Books…</span>
+    </div>
+
+    <form id="mainForm" class="form" hidden novalidate>
+
+      <div class="field">
+        <label for="accountSearch">الحساب</label>
+        <div class="combo">
+          <input
+            type="text"
+            id="accountSearch"
+            role="combobox"
+            aria-expanded="false"
+            aria-controls="accountList"
+            aria-autocomplete="list"
+            autocomplete="off"
+            spellcheck="false"
+            placeholder="ابحث بالاسم أو رمز الحساب…">
+          <button type="button" id="clearAccount" class="combo-clear" hidden aria-label="مسح الاختيار">×</button>
+          <div id="accountList" class="combo-list" role="listbox" aria-label="قائمة الحسابات" hidden></div>
+        </div>
+        <div class="meta-row" id="accountMeta" hidden></div>
+        <label class="child-toggle" id="childRow" hidden>
+          <input type="checkbox" id="includeChildren">
+          <span id="childLabel">تضمين معاملات الحسابات الفرعية</span>
+        </label>
+        <div class="detect-note" id="detectNote" hidden></div>
+      </div>
+
+      <div class="field">
+        <label for="periodPreset">الفترة</label>
+        <select id="periodPreset"></select>
+      </div>
+
+      <div class="date-row" id="customDateRow" hidden>
+        <div class="field">
+          <label for="fromDate">من تاريخ</label>
+          <input type="date" id="fromDate">
+        </div>
+        <div class="field">
+          <label for="toDate">إلى تاريخ</label>
+          <input type="date" id="toDate">
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="submit" id="generatePdfBtn" class="btn btn-primary">
+          <span class="spinner" id="pdfSpinner" hidden></span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <path d="M14 2v6h6"/>
+            <path d="M9 15h6M9 18h4"/>
+          </svg>
+          <span id="pdfBtnText">عرض الكشف وحفظه PDF</span>
+        </button>
+
+        <button type="button" id="exportCsvBtn" class="btn btn-ghost">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3" y="3" width="18" height="18" rx="2"/>
+            <path d="M3 9h18M9 21V9"/>
+          </svg>
+          <span id="csvBtnText">تصدير إلى CSV</span>
+        </button>
+      </div>
+
+      <p class="fineprint">يُفتح الكشف في تبويب جديد، ثم اضغط «حفظ PDF / طباعة» واختر «حفظ كملف PDF».</p>
+    </form>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

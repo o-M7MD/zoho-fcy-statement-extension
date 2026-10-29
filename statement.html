@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="color-scheme" content="light">
+  <title>كشف الحسابات</title>
+  <style>
+    :root {
+      --ink: #141414;
+      --body: #2b2b2b;
+      --muted: #6f6f6f;
+      --faint: #9a9a9a;
+      --line: #e3e3e3;
+      --soft: #f4f4f4;
+      --head: #333333;
+      --font: "Segoe UI", Tahoma, Arial, "Noto Naskh Arabic", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    html, body { margin: 0; }
+
+    body {
+      font-family: var(--font);
+      background: #f2f2f2;
+      color: var(--body);
+      padding: 22px 16px 60px;
+      font-size: 12px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .ltr {
+      direction: ltr;
+      unicode-bidi: isolate;
+      display: inline-block;
+    }
+
+    .num {
+      direction: ltr;
+      unicode-bidi: isolate;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    /* ---------------- screen toolbar ---------------- */
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      width: 794px;
+      max-width: 100%;
+      margin: 0 auto 16px;
+      padding: 9px 14px;
+      background: #ffffff;
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, .05);
+    }
+
+    .toolbar-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .toolbar img { height: 26px; width: auto; display: block; }
+
+    .toolbar-text {
+      font-size: 11px;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .btn-print {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 16px;
+      border: 0;
+      border-radius: 3px;
+      background: #141414;
+      color: #ffffff;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background .15s;
+    }
+
+    .btn-print:hover { background: #2c2c2c; }
+    .btn-print:focus-visible { outline: 2px solid #b9b9b9; outline-offset: 2px; }
+    .btn-print svg { width: 14px; height: 14px; }
+
+    .print-tip {
+      width: 794px;
+      max-width: 100%;
+      margin: 0 auto 12px;
+      text-align: center;
+      font-size: 9.5px;
+      color: #a0a0a0;
+    }
+
+    /* ---------------- paper ---------------- */
+    .sheet {
+      width: 794px;
+      max-width: 100%;
+      min-height: 1123px;
+      margin: 0 auto;
+      padding: 44px 46px 34px;
+      background: #ffffff;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, .10);
+    }
+
+    /* ---------------- letterhead ---------------- */
+    .letterhead {
+      display: flex;
+      align-items: flex-start;
+      justify-content: flex-start;
+      gap: 30px;
+      margin-bottom: 26px;
+    }
+
+    .letterhead .logo {
+      width: 186px;
+      height: auto;
+      display: block;
+    }
+
+    /* ---------------- title ---------------- */
+    .doc-heading {
+      text-align: center;
+      margin: 18px 0 30px;
+    }
+
+    .doc-heading h1 {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--ink);
+      margin: 0 0 12px;
+      letter-spacing: .3px;
+    }
+
+    .period {
+      display: inline-block;
+      border-top: 1px solid #444;
+      border-bottom: 1px solid #444;
+      padding: 6px 26px;
+      font-size: 12px;
+      color: #333;
+      min-width: 230px;
+      direction: ltr;
+      unicode-bidi: isolate;
+    }
+
+    .doc-subnote {
+      margin-top: 7px;
+      font-size: 9.5px;
+      color: #7a7a7a;
+      letter-spacing: .2px;
+    }
+
+    /* ---------------- currency positions ---------------- */
+    .positions {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 10.5px;
+      margin: 4px 0 6px;
+    }
+
+    .positions thead th {
+      background: var(--head);
+      color: #ffffff;
+      font-weight: 600;
+      font-size: 10.5px;
+      text-align: right;
+      padding: 9px;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 1px;
+    }
+
+    .positions thead th.num-head { text-align: left; }
+
+    .positions tbody td {
+      padding: 9px;
+      border-bottom: 1px solid #ececec;
+      text-align: right;
+      vertical-align: top;
+    }
+
+    .positions td.num-cell {
+      direction: ltr;
+      text-align: left;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .positions td.currency strong {
+      display: block;
+      font-size: 11px;
+      color: var(--ink);
+      letter-spacing: .3px;
+    }
+
+    .positions td.currency span {
+      display: block;
+      margin-top: 1px;
+      font-size: 9px;
+      color: #8a8a8a;
+    }
+
+    .positions td.balance { font-weight: 700; }
+
+    .positions-note {
+      margin: 0 0 16px;
+      font-size: 9px;
+      color: #8a8a8a;
+      line-height: 1.7;
+    }
+
+    /* ---------------- per-currency sections ---------------- */
+    .currency-section { margin-top: 26px; }
+
+    .section-head {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      padding-bottom: 8px;
+      margin-bottom: 10px;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .section-head h2 {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .section-account {
+      margin-bottom: 3px;
+      font-size: 9px;
+      color: #9a9a9a;
+      letter-spacing: .2px;
+    }
+
+    .section-sub {
+      margin-top: 3px;
+      font-size: 9.5px;
+      color: #777;
+    }
+
+    .section-closing {
+      text-align: left;
+      font-size: 9px;
+      color: #777;
+      white-space: nowrap;
+    }
+
+    .section-closing strong {
+      display: block;
+      margin-top: 2px;
+      font-size: 12px;
+      color: var(--ink);
+    }
+
+    .section-closing strong span {
+      font-size: 9px;
+      color: #777;
+      font-weight: 600;
+    }
+
+    /* ---------------- recipient ---------------- */
+    .recipient {
+      display: flex;
+      align-items: baseline;
+      gap: 7px;
+      margin-bottom: 26px;
+      font-size: 11.5px;
+    }
+
+    .recipient .label { color: var(--muted); }
+    .recipient .name { font-weight: 700; color: var(--ink); font-size: 12px; }
+    .recipient .code { color: var(--faint); font-size: 10px; }
+    .recipient .child-note { color: var(--muted); font-size: 9.5px; margin-inline-start: 6px; }
+
+    /* ---------------- summary ---------------- */
+    .summary {
+      width: 56%;
+      margin: 0 auto 30px;
+      border: 1px solid var(--line);
+      break-inside: avoid;
+    }
+
+    .summary-head {
+      background: #efefef;
+      padding: 7px 13px;
+      font-size: 11.5px;
+      font-weight: 700;
+      color: #333;
+    }
+
+    .summary-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 9px 13px;
+      border-bottom: 1px solid #efefef;
+      font-size: 11.5px;
+    }
+
+    .summary-row:last-child { border-bottom: 0; }
+
+    .summary-row .summary-label { color: #3d3d3d; }
+
+    .summary-row .summary-value {
+      color: var(--ink);
+      direction: rtl;
+      white-space: nowrap;
+    }
+
+    .summary-row .summary-value .amount {
+      direction: ltr;
+      unicode-bidi: isolate;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .summary-row .currency {
+      color: #5f5f5f;
+      font-size: 9.5px;
+      margin-inline-start: 5px;
+    }
+
+    .summary-row.total {
+      border-top: 1px solid #3d3d3d;
+      border-bottom: 0;
+      padding-top: 10px;
+      padding-bottom: 11px;
+      font-weight: 700;
+      font-size: 12px;
+    }
+
+    .summary-row.total .summary-label { color: var(--ink); }
+
+    .side {
+      color: var(--faint);
+      font-weight: 400;
+      font-size: 9.5px;
+      margin-inline-start: 5px;
+    }
+
+    /* ---------------- ledger ---------------- */
+    .ledger {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 10.5px;
+      margin-bottom: 16px;
+    }
+
+    .ledger thead th {
+      background: var(--head);
+      color: #ffffff;
+      font-weight: 600;
+      font-size: 10.5px;
+      text-align: right;
+      padding: 10px 9px;
+      white-space: nowrap;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 1px;
+    }
+
+    .ledger thead th.num-head { text-align: left; }
+
+    .ledger tbody td {
+      padding: 8px 9px;
+      border-bottom: 1px solid #ececec;
+      vertical-align: top;
+      text-align: right;
+    }
+
+    .ledger td.date {
+      white-space: nowrap;
+      color: #444;
+    }
+
+    .ledger td.type { font-weight: 600; color: var(--ink); }
+
+    .ledger td.details { color: #333; }
+
+    .ledger td.details .meta {
+      margin-top: 1px;
+      color: #909090;
+      font-size: 9px;
+    }
+
+    .ledger td.num-cell {
+      direction: ltr;
+      text-align: left;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .ledger td.balance { font-weight: 700; color: var(--ink); }
+
+    .ledger tr.opening-row td {
+      background: #fafafa;
+      font-weight: 600;
+      color: #3d3d3d;
+    }
+
+    .ledger tr.opening-row td.opening-label { letter-spacing: .2px; }
+
+    .ledger tr.empty-row td {
+      text-align: center;
+      padding: 30px 10px;
+      color: var(--muted);
+    }
+
+    .ledger tr.totals-row td {
+      border-top: 1px solid #3d3d3d;
+      border-bottom: 1px solid #3d3d3d;
+      background: #fafafa;
+      font-weight: 700;
+      color: var(--ink);
+      font-size: 10.5px;
+      padding: 9px;
+    }
+
+    .ledger tr.totals-row td.totals-label {
+      text-align: right;
+      letter-spacing: .2px;
+    }
+
+    /* ---------------- footing ---------------- */
+    .fine-print {
+      font-size: 9px;
+      color: var(--faint);
+      line-height: 1.7;
+      margin-bottom: 18px;
+    }
+
+    .doc-footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding-top: 8px;
+      border-top: 1px solid var(--line);
+      font-size: 8.5px;
+      color: #a0a0a0;
+    }
+
+    .doc-footer .ref { direction: ltr; unicode-bidi: isolate; }
+
+    /* ---------------- error ---------------- */
+    .error-card {
+      max-width: 520px;
+      margin: 90px auto;
+      padding: 22px 24px;
+      border: 1px solid #efd6d6;
+      background: #fdf7f7;
+      color: #8b2f2f;
+      font-size: 11.5px;
+      line-height: 1.7;
+    }
+
+    .error-title { font-weight: 700; font-size: 13px; margin-bottom: 4px; }
+
+    /* ---------------- screen only ---------------- */
+    @media screen and (max-width: 860px) {
+      body { padding: 12px 8px 40px; }
+      .sheet { padding: 28px 24px; min-height: 0; }
+      .summary { width: 86%; }
+      .toolbar-text { display: none; }
+    }
+
+    /* ---------------- print ---------------- */
+    @page {
+      size: A4 portrait;
+      margin: 12mm 12mm 14mm;
+    }
+
+    @media print {
+      html, body {
+        background: #ffffff !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+
+      .no-print { display: none !important; }
+
+      .sheet {
+        width: auto !important;
+        max-width: none !important;
+        min-height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        box-shadow: none !important;
+      }
+
+      .ledger thead { display: table-header-group; }
+
+      .section-start {
+        break-before: page;
+        page-break-before: always;
+      }
+
+      .section-head {
+        break-after: avoid;
+        page-break-after: avoid;
+      }
+
+      .positions {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      tr,
+      .summary,
+      .letterhead,
+      .doc-heading,
+      .recipient,
+      .doc-footer {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="toolbar no-print">
+    <div class="toolbar-left">
+      <img src="assets/logo.png" alt="Rossel Global">
+      <span class="toolbar-text" id="toolbarText">كشف الحسابات</span>
+    </div>
+    <button type="button" id="printBtn" class="btn-print">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M6 9V3h12v6"/>
+        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+        <rect x="6" y="14" width="12" height="8" rx="1"/>
+      </svg>
+      <span>حفظ PDF / طباعة</span>
+    </button>
+  </div>
+
+  <div class="print-tip no-print">عند الطباعة اختر «حفظ كملف PDF»، وفعّل «الرسومات الخلفية» لطباعة رأس الجدول باللون الداكن.</div>
+
+  <article class="sheet" id="statementContent">
+    <div style="display:grid;place-items:center;min-height:520px;color:#777;font-size:12px;">
+      جارٍ تجهيز كشف الحساب…
+    </div>
+  </article>
+
+  <script src="statement.js"></script>
+</body>
+</html>

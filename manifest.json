@@ -1,0 +1,36 @@
+{
+  "manifest_version": 3,
+  "name": "Zoho Books — كشوف الحسابات بالعملة الأجنبية",
+  "version": "2.3.0",
+  "description": "كشف حساب بالعملة الأصلية من Zoho Books، مع دعم الحسابات متعددة العملات، والرصيد الافتتاحي، والحسابات الفرعية، وفترات جاهزة، وطباعة PDF.",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "كشف حساب بالعملة الأجنبية",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage",
+    "tabs"
+  ],
+  "host_permissions": [
+    "https://books.zoho.com/*",
+    "https://books.zoho.eu/*",
+    "https://books.zoho.in/*",
+    "https://books.zoho.sa/*",
+    "https://books.zoho.com.au/*",
+    "https://books.zoho.jp/*",
+    "https://books.zoho.ca/*",
+    "https://books.zoho.uk/*"
+  ]
+}
